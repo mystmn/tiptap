@@ -175,6 +175,24 @@ describe('pasting HTML links', () => {
         expect(editor!.getHTML()).toContain('href="https://new.example.com"')
         expect(editor!.getHTML()).toContain('href="https://old.example.com"')
       })
+
+      it('does not bypass the guard for a markdown label', () => {
+        createEditor(linkOptions)
+
+        const clipboardData = new DataTransfer()
+        clipboardData.setData(
+          'text/html',
+          '<a href="https://safe.example/docs">See [docs](https://evil.example)</a>',
+        )
+        clipboardData.setData('text/plain', 'See [docs](https://evil.example)')
+
+        editor!.view.dom.dispatchEvent(
+          new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true }),
+        )
+
+        expect(editor!.getHTML()).toContain('href="https://safe.example/docs"')
+        expect(editor!.getHTML()).not.toContain('href="https://evil.example"')
+      })
     })
   })
 })
